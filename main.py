@@ -39,3 +39,23 @@ async def validate_user(data: BehaviorData):
         return {"success": False, "message": "Suspicious behavior detected", "reasons": reasons}
 
     return {"success": True, "message": "User is legitimate"}
+
+
+@app.post("/validate-session")
+async def validate_session(data: BehaviorData):
+    suspicious = False
+    reasons = []
+
+    if data.mouseMoves < 1000 and data.keypresses < 1000 and data.scrolls < 1000:
+        suspicious = True
+        reasons.append("No interaction during session interval")
+
+    if data.timing and data.timing[0] < 500:
+        suspicious = True
+        reasons.append("Interaction too short")
+
+    return {
+        "success": not suspicious,
+        "message": "Session behavior evaluated",
+        "reasons": reasons
+    }
