@@ -46,7 +46,7 @@ async def validate_session(data: BehaviorData):
     suspicious = False
     reasons = []
 
-    if data.mouseMoves < 1000 and data.keypresses < 1000 and data.scrolls < 1000:
+    if data.mouseMoves < 1000 and data.keypresses < 1000 and data.scrolls < 1:
         suspicious = True
         reasons.append("No interaction during session interval")
 

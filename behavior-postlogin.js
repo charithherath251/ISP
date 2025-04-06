@@ -26,7 +26,9 @@
       .then(result => {
         if (!result.success) {
           alert("⚠️ Abnormal behavior detected during session.");
-          // Optional: Logout user, lock session, etc.
+          
+          // End simulated session
+            localStorage.removeItem("sessionActive");
           window.location.href = "index.html";
 
         }
