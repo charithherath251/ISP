@@ -30,6 +30,7 @@
                 .then(data => {
                     if (!data.success) {
                         alert("Bot detected! Login blocked.\n" + data.reasons.join(", "));
+                        window.location.href = "/ISP/index.html";
                     } else {
                         alert("User verified. Login allowed.");
                         form.submit(); // Simulate real login
