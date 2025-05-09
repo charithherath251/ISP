@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Invisible CAPTCHA Dashboard</title>
+    <style>
+        body { font-family: Arial; padding: 20px; }
+        table { border-collapse: collapse; width: 100%; }
+        th, td { border: 1px solid #ccc; padding: 8px; text-align: center; }
+        th { background-color: #f2f2f2; }
+    </style>
+</head>
+<body>
+    <h2>Invisible CAPTCHA Analytics Dashboard</h2>
+    <p>Total Sessions: {{ total }}</p>
+    <p>Legit Users: {{ legit }}</p>
+    <p>Suspicious Users: {{ suspicious }}</p>
+    <p>Average Clicks: {{ avg_clicks }} | Average Keypresses: {{ avg_keys }}</p>
+
+    <h3>Recent Suspicious Sessions</h3>
+    <table>
+        <tr><th>Clicks</th><th>Keys</th><th>Time</th><th>Reason</th></tr>
+        {% for row in suspicious_rows %}
+        <tr>
+            <td>{{ row.clicks }}</td>
+            <td>{{ row.keypresses }}</td>
+            <td>{{ row.timestamp }}</td>
+            <td>{{ row.reason }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+</body>
+</html>
