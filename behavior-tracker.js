@@ -4,13 +4,51 @@
         keypresses: 0,
         scrolls: 0,
         clicks: 0,
+        mouseMovements: [],
+        scrollEvents: [],
+        keystrokeTimings: [],
         timing: [],
-        startTime: Date.now()
+        startTime: Date.now(),
+        lastMouseX: null,
+        lastMouseY: null,
+        lastKeyTime: null
     };
 
-    document.addEventListener('mousemove', () => userActivity.mouseMoves++);
-    document.addEventListener('keydown', () => userActivity.keypresses++);
-    document.addEventListener('scroll', () => userActivity.scrolls++);
+    // MouseMovement
+    document.addEventListener('mousemove', (event) => {
+        userActivity.mouseMoves++;
+
+        if (userActivity.lastMouseX !== null && userActivity.lastMouseY !== null) {
+            const dx = Math.abs(userActivity.lastMouseX - event.clientX);
+            const dy = Math.abs(userActivity.lastMouseY - event.clientY);
+            userActivity.mouseMovements.push({ x: dx, y: dy, timestamp: Date.now() });
+        }
+
+        userActivity.lastMouseX = event.clientX;
+        userActivity.lastMouseY = event.clientY;
+    });
+
+    //Keypress
+    // document.addEventListener('keydown', () => {
+    //     userActivity.keypresses++;
+    //     const currentTime = Date.now();
+    //     if (lastKeyTime !== null) {
+    //         userActivity.keystrokeTimings.push(currentTime - lastKeyTime);
+    //     }
+    //     lastKeyTime = currentTime;
+    // });
+    // const currentTime = Date.now();
+    // if (userActivity.lastKeyTime !== null) {
+    //     userActivity.keystrokeTimings.push(currentTime - userActivity.lastKeyTime);
+    // }
+    // userActivity.lastKeyTime = currentTime;
+    
+    //Scrolls
+    window.addEventListener('scroll', () => {
+        userActivity.scrolls++;
+        userActivity.scrollEvents.push({ timestamp: Date.now(), scrollY: window.scrollY });
+    });
+
     document.addEventListener('click', () => userActivity.clicks++);
 
     document.addEventListener('DOMContentLoaded', () => {
@@ -20,6 +58,8 @@
         form.addEventListener('submit', function (e) {
             e.preventDefault();
             userActivity.timing.push(Date.now() - userActivity.startTime);
+            console.log(JSON.stringify(userActivity));
+            // console.log("Payload being sent:", JSON.stringify(userActivity, null, 2));
 
             fetch('http://127.0.0.1:8000/validate-user', {
                 method: 'POST',

@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!-- <!DOCTYPE html>
 <html>
 <head>
     <title>Invisible CAPTCHA Dashboard</title>
@@ -28,5 +28,150 @@
         </tr>
         {% endfor %}
     </table>
+</body>
+</html> -->
+
+
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Invisible CAPTCHA Dashboard</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 20px;
+      background: #f5f7fa;
+    }
+    h2 {
+      color: #333;
+      margin-top: 30px;
+    }
+    .card-grid {
+      display: flex;
+      gap: 20px;
+      margin-bottom: 20px;
+    }
+    .card {
+      background: white;
+      border-radius: 8px;
+      padding: 20px;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.1);
+      flex: 1;
+      text-align: center;
+      font-size: 1.1em;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 15px;
+      background: white;
+    }
+    th, td {
+      border: 1px solid #ccc;
+      padding: 8px;
+      text-align: center;
+    }
+    th {
+      background-color: #e9ecef;
+    }
+    canvas {
+      margin: 30px 0;
+      background: white;
+      border-radius: 8px;
+      padding: 10px;
+    }
+    .export-link {
+      margin-top: 20px;
+      display: inline-block;
+      background: #0066cc;
+      color: white;
+      padding: 10px 15px;
+      border-radius: 5px;
+      text-decoration: none;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Invisible CAPTCHA Analytics Dashboard</h1>
+
+  <section>
+    <h2>Activity Overview</h2>
+    <div class="card-grid">
+      <div class="card">Total Logins (Today): {{ total_today }}</div>
+      <div class="card">Total Logins (This Week): {{ total_week }}</div>
+      <div class="card">Total Logins (This Month): {{ total_month }}</div>
+    </div>
+    
+    <div style="display: flex; gap: 20px; flex-wrap: wrap;">
+    <canvas id="pieChart" width="400" height="200"></canvas>
+    <canvas id="barChart" width="400" height="200"></canvas>
+    <canvas id="lineChart" width="400" height="200"></canvas>
+    </div>
+  </section>
+
+  <section>
+    <h2>Suspicious Logins</h2>
+    <table>
+      <tr><th>Time</th><th>IP</th><th>Reason</th></tr>
+      {% for row in suspicious_rows %}
+      <tr>
+        <td>{{ row.timestamp }}</td>
+        <td>{{ row.ip }}</td>
+        <td>{{ row.reason }}</td>
+      </tr>
+      {% endfor %}
+    </table>
+  </section>
+
+  <a href="/export-csv" class="export-link">Download CSV</a>
+
+  <script>
+    const pieChart = new Chart(document.getElementById('pieChart'), {
+      type: 'pie',
+      data: {
+        labels: ['Legit', 'Suspicious'],
+        datasets: [{
+          data: {{ status_counts | safe }},
+          backgroundColor: ['#4CAF50', '#F44336']
+        }]
+      }
+    });
+
+    const barChart = new Chart(document.getElementById('barChart'), {
+      type: 'bar',
+      data: {
+        labels: {{ login_hours | safe }},
+        datasets: [{
+          label: 'Logins per Hour',
+          data: {{ login_counts | safe }},
+          backgroundColor: '#007bff'
+        }]
+      }
+    });
+
+    const lineChart = new Chart(document.getElementById('lineChart'), {
+      type: 'line',
+      data: {
+        labels: {{ trend_labels | safe }},
+        datasets: [
+          {
+            label: 'Legit',
+            data: {{ trend_legit | safe }},
+            borderColor: '#4CAF50',
+            fill: false
+          },
+          {
+            label: 'Suspicious',
+            data: {{ trend_suspicious | safe }},
+            borderColor: '#F44336',
+            fill: false
+          }
+        ]
+      }
+    });
+  </script>
+
 </body>
 </html>
