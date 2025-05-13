@@ -18,6 +18,8 @@ def average_mouse_speed(mouse_movements: List[MouseMovement]):
 
 def movement_variance(mouse_movements: List[MouseMovement], avg_speed: float):
     speeds = [(m.x**2 + m.y**2)**0.5 for m in mouse_movements]
+    if not speeds:
+        return 0 
     variance = sum((speed - avg_speed)**2 for speed in speeds) / len(speeds)
     return variance
 
@@ -58,16 +60,16 @@ def analyze_keystroke_timings(timings: List[int]) -> dict:
 
 #csv file
 
-def calculate_average_mouse_speed(movements):
-    if len(movements) < 2:
-        return 0
-    total_dist = sum((m.x**2 + m.y**2) ** 0.5 for m in movements)
-    total_time = (movements[-1].timestamp - movements[0].timestamp) / 1000
-    return total_dist / total_time if total_time else 0
+# def calculate_average_mouse_speed(movements):
+#     if len(movements) < 2:
+#         return 0
+#     total_dist = sum((m.x**2 + m.y**2) ** 0.5 for m in movements)
+#     total_time = (movements[-1].timestamp - movements[0].timestamp) / 1000
+#     return total_dist / total_time if total_time else 0
 
-def calculate_movement_variance(movements, avg_speed):
-    speeds = [(m.x**2 + m.y**2)**0.5 for m in movements]
-    return sum((s - avg_speed) ** 2 for s in speeds) / len(speeds) if speeds else 0
+# def calculate_movement_variance(movements, avg_speed):
+#     speeds = [(m.x**2 + m.y**2)**0.5 for m in movements]
+#     return sum((s - avg_speed) ** 2 for s in speeds) / len(speeds) if speeds else 0
 
 def analyze_keystroke_stats(timings):
     if not timings:
