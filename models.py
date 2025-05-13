@@ -18,6 +18,7 @@ class UserActivity(BaseModel):
     clicks: int
     mouseMovements: List[MouseMovement]
     scrollEvents: List[ScrollEvent]
+    keystrokeTimings: List[int]
     timing: List[int]
     startTime: int
     

@@ -42,6 +42,19 @@
     //     userActivity.keystrokeTimings.push(currentTime - userActivity.lastKeyTime);
     // }
     // userActivity.lastKeyTime = currentTime;
+    document.addEventListener('keydown', () => {
+        userActivity.keypresses++; // Count total keypresses
+    
+        const currentTime = Date.now(); // Time of current keypress
+    
+        if (userActivity.lastKeyTime !== null) {
+            const interval = currentTime - userActivity.lastKeyTime;
+            userActivity.keystrokeTimings.push(interval); // Time between keypresses
+        }
+    
+        userActivity.lastKeyTime = currentTime; // Update for next key
+    });
+    
     
     //Scrolls
     window.addEventListener('scroll', () => {

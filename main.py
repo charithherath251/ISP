@@ -161,14 +161,19 @@
 #     })
 
 # main.py
+import csv
+import os
 from fastapi import FastAPI
 from typing import Dict, Any
 from models import UserActivity
 from validators import average_mouse_speed, movement_variance, is_constant_scroll_speed, analyze_keystroke_timings
+from validators import calculate_average_mouse_speed, calculate_movement_variance,analyze_keystroke_stats
 from thresholds import HUMAN_THRESHOLDS
 from fastapi.middleware.cors import CORSMiddleware
 
 app = FastAPI()
+
+CSV_FILE = "user_behavior_log.csv"
 
 app.add_middleware(
     CORSMiddleware,
@@ -202,9 +207,9 @@ async def validate_user(activity: UserActivity) -> Dict[str, Any]:
     if is_constant_scroll_speed(activity.scrollEvents, HUMAN_THRESHOLDS["scroll_speed_tolerance"]):
         reasons.append("Constant scrolling speed detected.")
 
-    # keystroke_result = analyze_keystroke_timings(activity.keystrokeTimings)
-    # if keystroke_result["suspicious"]:
-    #     reasons.append(f"Suspicious typing pattern (mean: {keystroke_result['mean']:.2f} ms, stddev: {keystroke_result['std_dev']:.2f} ms)")
+    keystroke_result = analyze_keystroke_timings(activity.keystrokeTimings)
+    if keystroke_result["suspicious"]:
+        reasons.append(f"Suspicious typing pattern (mean: {keystroke_result['mean']:.2f} ms, stddev: {keystroke_result['std_dev']:.2f} ms)")
     
     success = len(reasons) == 0
     
@@ -233,4 +238,37 @@ async def validate_session(activity: UserActivity) -> Dict[str, Any]:
  
     success = len(reasons) == 0
     
+    # Ensure CSV file exists with header
+    file_exists = os.path.isfile(CSV_FILE)
+    
+    with open(CSV_FILE, mode="a", newline="") as file:
+        writer = csv.writer(file)
+        
+        if not file_exists:
+            writer.writerow([
+                "timestamp",
+                "mouseMoves", "keypresses", "scrolls", "clicks",
+                "avgMouseSpeed", "mouseVariance",
+                "keystrokeMean", "keystrokeStdDev"
+            ])
+        
+        # Calculate averages
+        # avg_speed = calculate_average_mouse_speed(activity.mouseMovements)
+        # variance = calculate_movement_variance(activity.mouseMovements, avg_speed)
+        # ks_mean, ks_stddev = analyze_keystroke_stats(activity.keystrokeTimings)
+
+        writer.writerow([
+            activity.startTime,
+            activity.mouseMoves,
+            activity.keypresses,
+            activity.scrolls,
+            activity.clicks,
+            round(avg_speed, 2),
+            round(variance, 2),
+            # round(ks_mean, 2),
+            # round(ks_stddev, 2)
+        ])
+
+    # return {"success": True}
+
     return {"success": success, "reasons": reasons}
