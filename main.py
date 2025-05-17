@@ -1,176 +1,18 @@
-# from fastapi import FastAPI, Request
-# from pydantic import BaseModel
-# from typing import List
-# from fastapi.middleware.cors import CORSMiddleware
-# from datetime import datetime, timedelta
-# from fastapi.responses import HTMLResponse
-# from statistics import mean
-# from fastapi.templating import Jinja2Templates
-# from collections import defaultdict, Counter
-
-# app = FastAPI()
-
-# all_sessions = []  # Stores all behavior validation attempts for analytics
-# templates = Jinja2Templates(directory="templates")
-
-
-# app.add_middleware(
-#     CORSMiddleware,
-#     allow_origins=["*"],  # Or ["http://localhost:5500"] if you want to restrict
-#     allow_credentials=True,
-#     allow_methods=["*"],
-#     allow_headers=["*"],
-# )
-# class MouseMovement(BaseModel):
-#     x: float
-#     y: float
-#     timestamp: int
-
-# class BehaviorData(BaseModel):
-#     mouseMoves: int
-#     keypresses: int
-#     scrolls: int
-#     clicks: int
-#     mouseMovements: List[MouseMovement]
-#     timing: List[int]
-#     startTime: int
-
-# @app.post("/validate-user")
-# async def validate_user(data: BehaviorData):
-#     suspicious = False
-#     reasons = []
-
-#     if data.mouseMoves < 1000 and data.keypresses < 1000 and data.scrolls < 1000:
-#         suspicious = True
-#         reasons.append("Minimal activity")
-
-#     if data.timing and data.timing[0] < 500:
-#         suspicious = True
-#         reasons.append("Interaction too fast")
-
-#     if suspicious:
-#         return {"success": False, "message": "Suspicious behavior detected", "reasons": reasons}
-
-#     return {"success": True, "message": "User is legitimate"}
-
-
-# @app.post("/validate-session")
-# async def validate_session(data: BehaviorData):
-#     suspicious = False
-#     reasons = []
-
-#     if data.mouseMoves < 1000 and data.keypresses < 1000 and data.scrolls < 1:
-#         suspicious = True
-#         reasons.append("No interaction during session interval")
-
-#     if data.timing and data.timing[0] < 500:
-#         suspicious = True
-#         reasons.append("Interaction too short")
-
-#     all_sessions.append({
-#         # "sessionId": data.sessionId,
-#         "mouseMoves": data.mouseMoves,
-#         "keypresses": data.keypresses,
-#         "scrolls": data.scrolls,
-#         "clicks": data.clicks,
-#         "timing": data.timing,
-#         "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-#         "status": "Suspicious" if suspicious else "Legit",
-#         "reason": ", ".join(reasons) if suspicious else "-"
-#     })
-
-#     return {
-#         "success": not suspicious,
-#         "message": "Session behavior evaluated",
-#         "reasons": reasons
-#     }
-
-
-# @app.get("/dashboard", response_class=HTMLResponse)
-# def dashboard(request: Request):
-#     legit = [s for s in all_sessions if s["status"] == "Legit"]
-#     suspicious = [s for s in all_sessions if s["status"] == "Suspicious"]
-
-#     # avg_clicks = round(mean([s["clicks"] for s in all_sessions]), 2) if all_sessions else 0
-#     # avg_keys = round(mean([s["keypresses"] for s in all_sessions]), 2) if all_sessions else 0
-
-#     # Safely parse timestamp if it's a string
-#     for s in all_sessions:
-#         if isinstance(s["timestamp"], str):
-#             s["timestamp"] = datetime.strptime(s["timestamp"], "%Y-%m-%d %H:%M:%S")
-
-
-#     # daily_counts = Counter(s["timestamp"].strftime("%Y-%m-%d") for s in all_sessions)
-#     # status_counts = Counter(s["status"] for s in all_sessions)
-#     # hour_counts = Counter(s["timestamp"].strftime("%H") for s in all_sessions)
-
-#     # from collections import defaultdict
-#     # trend_data = defaultdict(lambda: {"Legit": 0, "Suspicious": 0})
-
-#     # for s in all_sessions:
-#     #     day = s["timestamp"].strftime("%Y-%m-%d")
-#     #     trend_data[day][s["status"]] += 1
-
-
-
-
-#     # return templates.TemplateResponse("dashboard.html", {
-#     #     "request": request,
-#     #     "total": len(all_sessions),
-#     #     "legit": len(legit),
-#     #     "suspicious": len(suspicious),
-#     #     "avg_clicks": avg_clicks,
-#     #     "avg_keys": avg_keys,
-#     #     "suspicious_rows": suspicious[-10:]
-#     # })
-#     now = datetime.now()
-#     total_today = sum(1 for s in all_sessions if s['timestamp'].date() == now.date())
-#     total_week = sum(1 for s in all_sessions if now - timedelta(days=7) <= s['timestamp'] <= now)
-#     total_month = sum(1 for s in all_sessions if now.month == s['timestamp'].month)
-
-#     status_counts = [
-#         sum(1 for s in all_sessions if s['status'] == 'Legit'),
-#         sum(1 for s in all_sessions if s['status'] == 'Suspicious')
-#     ]
-
-#     login_by_hour = Counter(s['timestamp'].strftime('%H') for s in all_sessions)
-#     login_hours = list(range(24))
-#     login_counts = [login_by_hour.get(f"{h:02}", 0) for h in login_hours]
-
-#     trend_data = defaultdict(lambda: {"Legit": 0, "Suspicious": 0})
-#     for s in all_sessions:
-#         day = s['timestamp'].strftime('%Y-%m-%d')
-#         trend_data[day][s['status']] += 1
-
-#     trend_labels = list(sorted(trend_data.keys()))
-#     trend_legit = [trend_data[d]['Legit'] for d in trend_labels]
-#     trend_suspicious = [trend_data[d]['Suspicious'] for d in trend_labels]
-
-#     return templates.TemplateResponse("dashboard.html", {
-#         "request": request,
-#         "total_today": total_today,
-#         "total_week": total_week,
-#         "total_month": total_month,
-#         "status_counts": status_counts,
-#         "login_hours": login_hours,
-#         "login_counts": login_counts,
-#         "trend_labels": trend_labels,
-#         "trend_legit": trend_legit,
-#         "trend_suspicious": trend_suspicious,
-#         "suspicious_rows": suspicious[-10:]
-#     })
-
 # main.py
 import csv
 import os
+from fastapi import Request
 from datetime import datetime
-from fastapi import FastAPI
+from fastapi import FastAPI, Form, HTTPException
+from fastapi.responses import RedirectResponse, JSONResponse
+import motor.motor_asyncio
+import bcrypt
 from typing import Dict, Any
 from models import UserActivity
 from validators import average_mouse_speed, movement_variance, is_constant_scroll_speed, analyze_keystroke_timings
-# from validators import analyze_keystroke_stats
 from thresholds import HUMAN_THRESHOLDS
 from fastapi.middleware.cors import CORSMiddleware
+from db import pre_login_collection, post_login_collection
 
 app = FastAPI()
 
@@ -179,11 +21,25 @@ POST_LOGIN_CSV_FILE = "Postlogin_user_behavior_log.csv"
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Or ["http://localhost:5500"] if you want to restrict
+    allow_origins=["http://localhost:5500","http://localhost:5501","http://localhost:3000"],  # Or ["http://localhost:5500"] if you want to restrict
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+@app.get("/get-pre-logs")
+async def get_pre_logs():
+    logs = await pre_login_collection.find().to_list(length=1000)
+    for log in logs:
+        log["_id"] = str(log["_id"])  # Convert ObjectId to string for JSON serialization
+    return logs
+
+@app.get("/get-post-logs")
+async def get_post_logs():
+    logs = await post_login_collection.find().to_list(length=1000)
+    for log in logs:
+        log["_id"] = str(log["_id"])
+    return logs
 
 @app.post("/validate-user")
 async def validate_user(activity: UserActivity) -> Dict[str, Any]:
@@ -214,6 +70,33 @@ async def validate_user(activity: UserActivity) -> Dict[str, Any]:
         reasons.append(f"Suspicious typing pattern (mean: {keystroke_result['mean']:.2f} ms, stddev: {keystroke_result['std_dev']:.2f} ms)")
     
     success = len(reasons) == 0
+    #     # Save to MongoDB
+    # doc = {
+    #     "timestamp": datetime.utcnow(),
+    #     **activity.dict(),
+    #     "validation": {
+    #         "success": success,
+    #         "reasons": reasons
+    #     },
+    #     "source": "pre-login"
+    # }
+    # await behavior_collection.insert_one(doc)
+    doc = {
+        "timestamp": datetime.utcnow(),
+        "mouseMoves": activity.mouseMoves,
+        "keypresses": activity.keypresses,
+        "scrolls": activity.scrolls,
+        "clicks": activity.clicks,
+        "interactionTime": activity.timing[0] if activity.timing else 0,
+        "avgSpeed": round(avg_speed, 2),
+        "movementVariance": round(variance, 2),
+        "keystrokeMean": round(keystroke_result["mean"], 2),
+        "keystrokeStdDev": round(keystroke_result["std_dev"], 2),
+        "success": success,
+        "reasons": reasons
+    }
+
+    await pre_login_collection.insert_one(doc)
 
       # Ensure CSV file exists with header
     file_exists = os.path.isfile(PRE_LOGIN_CSV_FILE)
@@ -266,6 +149,21 @@ async def validate_session(activity: UserActivity) -> Dict[str, Any]:
         reasons.append("Constant scrolling speed detected.")
  
     success = len(reasons) == 0
+
+    doc = {
+        "timestamp": datetime.utcnow(),
+        "mouseMoves": activity.mouseMoves,
+        "keypresses": activity.keypresses,
+        "scrolls": activity.scrolls,
+        "clicks": activity.clicks,
+        "interactionTime": activity.timing[0] if activity.timing else 0,
+        "avgSpeed": round(avg_speed, 2),
+        "movementVariance": round(variance, 2),
+        "success": success,
+        "reasons": reasons
+    }
+
+    await post_login_collection.insert_one(doc)
     
     # Ensure CSV file exists with header
     file_exists = os.path.isfile(POST_LOGIN_CSV_FILE)
@@ -291,3 +189,47 @@ async def validate_session(activity: UserActivity) -> Dict[str, Any]:
     # return {"success": True}
 
     return {"success": success, "reasons": reasons}
+
+
+client = motor.motor_asyncio.AsyncIOMotorClient("mongodb://localhost:27017")
+db = client["dashboard"]
+users = db["users"]
+
+@app.post("/login")
+async def login(username: str = Form(...), password: str = Form(...)):
+    user = await users.find_one({"username": username})
+    if not user or not bcrypt.checkpw(password.encode(), user["password_hash"].encode()):
+        raise HTTPException(status_code=401, detail="Invalid credentials")
+
+    response = JSONResponse(content={"success": True})
+    response.set_cookie(
+        key="authenticated",
+        value="true",
+        httponly=False,
+        samesite="Lax",
+        secure=False,
+        domain="localhost"
+    )
+    response.set_cookie(
+        key="username",
+        value=username,
+        httponly=False,
+        samesite="Lax",
+        secure=False,
+        domain="localhost"
+    )
+    return response
+
+@app.get("/logout")
+async def logout():
+    response = RedirectResponse(url="http://localhost:5500/login.html")
+    response.delete_cookie("authenticated")
+    response.delete_cookie("username")  # if you're using it
+    return response
+
+@app.get("/profile")
+async def get_profile(request: Request):
+    auth_cookie = request.cookies.get("authenticated")
+    if auth_cookie != "true":
+        raise HTTPException(status_code=401, detail="Not authenticated")
+    return {"success": True, "username": request.cookies.get("username", "Unknown")}

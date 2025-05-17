@@ -28,20 +28,7 @@
         userActivity.lastMouseY = event.clientY;
     });
 
-    //Keypress
-    // document.addEventListener('keydown', () => {
-    //     userActivity.keypresses++;
-    //     const currentTime = Date.now();
-    //     if (lastKeyTime !== null) {
-    //         userActivity.keystrokeTimings.push(currentTime - lastKeyTime);
-    //     }
-    //     lastKeyTime = currentTime;
-    // });
-    // const currentTime = Date.now();
-    // if (userActivity.lastKeyTime !== null) {
-    //     userActivity.keystrokeTimings.push(currentTime - userActivity.lastKeyTime);
-    // }
-    // userActivity.lastKeyTime = currentTime;
+ 
     document.addEventListener('keydown', () => {
         userActivity.keypresses++; // Count total keypresses
     
@@ -74,7 +61,7 @@
             console.log(JSON.stringify(userActivity));
             // console.log("Payload being sent:", JSON.stringify(userActivity, null, 2));
 
-            fetch('http://127.0.0.1:8000/validate-user', {
+            fetch('http://localhost:8000/validate-user', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(userActivity)
