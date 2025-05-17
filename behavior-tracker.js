@@ -28,7 +28,7 @@
         userActivity.lastMouseY = event.clientY;
     });
 
- 
+    //keystroke
     document.addEventListener('keydown', () => {
         userActivity.keypresses++; // Count total keypresses
     
@@ -49,6 +49,7 @@
         userActivity.scrollEvents.push({ timestamp: Date.now(), scrollY: window.scrollY });
     });
 
+    //mouseClicks
     document.addEventListener('click', () => userActivity.clicks++);
 
     document.addEventListener('DOMContentLoaded', () => {

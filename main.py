@@ -19,19 +19,25 @@ app = FastAPI()
 PRE_LOGIN_CSV_FILE = "Prelogin_user_behavior_log.csv"
 POST_LOGIN_CSV_FILE = "Postlogin_user_behavior_log.csv"
 
+#mongoDB connection
+client = motor.motor_asyncio.AsyncIOMotorClient("mongodb://localhost:27017")
+db = client["dashboard"]
+users = db["users"]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5500","http://localhost:5501","http://localhost:3000"],  # Or ["http://localhost:5500"] if you want to restrict
+    allow_origins=["http://localhost:5500","http://localhost:5501","http://localhost:3000"],  
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
+#get data from mongoDB
 @app.get("/get-pre-logs")
 async def get_pre_logs():
     logs = await pre_login_collection.find().to_list(length=1000)
     for log in logs:
-        log["_id"] = str(log["_id"])  # Convert ObjectId to string for JSON serialization
+        log["_id"] = str(log["_id"])  
     return logs
 
 @app.get("/get-post-logs")
@@ -41,6 +47,7 @@ async def get_post_logs():
         log["_id"] = str(log["_id"])
     return logs
 
+#pre-login user validation
 @app.post("/validate-user")
 async def validate_user(activity: UserActivity) -> Dict[str, Any]:
     reasons = []
@@ -70,17 +77,6 @@ async def validate_user(activity: UserActivity) -> Dict[str, Any]:
         reasons.append(f"Suspicious typing pattern (mean: {keystroke_result['mean']:.2f} ms, stddev: {keystroke_result['std_dev']:.2f} ms)")
     
     success = len(reasons) == 0
-    #     # Save to MongoDB
-    # doc = {
-    #     "timestamp": datetime.utcnow(),
-    #     **activity.dict(),
-    #     "validation": {
-    #         "success": success,
-    #         "reasons": reasons
-    #     },
-    #     "source": "pre-login"
-    # }
-    # await behavior_collection.insert_one(doc)
     doc = {
         "timestamp": datetime.utcnow(),
         "mouseMoves": activity.mouseMoves,
@@ -127,6 +123,7 @@ async def validate_user(activity: UserActivity) -> Dict[str, Any]:
     
     return {"success": success, "reasons": reasons}
 
+#post-login user validation
 @app.post("/validate-session")
 async def validate_session(activity: UserActivity) -> Dict[str, Any]:
     reasons = []
@@ -186,15 +183,9 @@ async def validate_session(activity: UserActivity) -> Dict[str, Any]:
             # round(ks_stddev, 2)
         ])
 
-    # return {"success": True}
-
     return {"success": success, "reasons": reasons}
 
-
-client = motor.motor_asyncio.AsyncIOMotorClient("mongodb://localhost:27017")
-db = client["dashboard"]
-users = db["users"]
-
+#user dashboard authentication
 @app.post("/login")
 async def login(username: str = Form(...), password: str = Form(...)):
     user = await users.find_one({"username": username})
@@ -220,6 +211,7 @@ async def login(username: str = Form(...), password: str = Form(...)):
     )
     return response
 
+#user dashboard logout
 @app.get("/logout")
 async def logout():
     response = RedirectResponse(url="http://localhost:5500/login.html")
@@ -227,6 +219,7 @@ async def logout():
     response.delete_cookie("username")  # if you're using it
     return response
 
+#user dashboard session handling  
 @app.get("/profile")
 async def get_profile(request: Request):
     auth_cookie = request.cookies.get("authenticated")

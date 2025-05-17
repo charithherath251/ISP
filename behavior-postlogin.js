@@ -29,20 +29,6 @@
       userActivity.lastMouseY = event.clientY;
   });
 
-  //Keypress
-  // document.addEventListener('keydown', () => {
-  //     userActivity.keypresses++;
-  //     const currentTime = Date.now();
-  //     if (lastKeyTime !== null) {
-  //         userActivity.keystrokeTimings.push(currentTime - lastKeyTime);
-  //     }
-  //     lastKeyTime = currentTime;
-  // });
-  // const currentTime = Date.now();
-  // if (userActivity.lastKeyTime !== null) {
-  //     userActivity.keystrokeTimings.push(currentTime - userActivity.lastKeyTime);
-  // }
-  // userActivity.lastKeyTime = currentTime;
   
   //Scrolls
   window.addEventListener('scroll', () => {
@@ -50,6 +36,7 @@
       userActivity.scrollEvents.push({ timestamp: Date.now(), scrollY: window.scrollY });
   });
 
+    //mouseClicks
   document.addEventListener('click', () => userActivity.clicks++);
 
   // Send data every 30 seconds
@@ -84,6 +71,6 @@
             timing: []
           };
         });
-      }, 10000); // 30 sec
+      }, 30000); // 30 sec
     
     })();
